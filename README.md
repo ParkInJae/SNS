@@ -1,7 +1,7 @@
 0️⃣  페이징 관련에서 겪었던  어려운 점  <br/>
  기존에 작성한 페이징util 객체를 불러와서 사용을 하는데 , 각각의 쿼리와 함께 사용해야하는 부분에서 혼동이 왔음 <br/><br/>
  
-➡️ 작성한 코드 
+➡️ 기존에 작성한 코드 
 ```
 public void blackList (HttpServletRequest request
 			, HttpServletResponse response) throws ServletException, IOException {
@@ -75,7 +75,7 @@ public void blackList (HttpServletRequest request
 			 System.out.println("paging.getPerPage()::::"+paging.getPerPage());
 			
 			psmt = conn.prepareStatement(sql);
-			psmt.setInt(1, paging.getStart());
+			psmt.setInt(1, paging.getStartPage());
 			psmt.setInt(2, paging.getPerPage());
 			rs = psmt.executeQuery();
 			
@@ -108,25 +108,33 @@ public void blackList (HttpServletRequest request
 	}
 	
 ```
- 
- 
+📗 개선한 부분
+처음에는 getStartPage()를 psmt에 세팅하고 있어 오류가 발생하는 줄 모르고 , getStartPage()가 null이라서 받아오지 못한다고 생각하여 
+```
+	 System.out.println("paging.getStartPage()::::"+paging.getStart());
+	 System.out.println("paging.getPerPage()::::"+paging.getPerPage());
+```
+코드를 통해서 콘솔로 확인하는데 콘솔창에 값을 나타내어, 문제점을 찾지 못하다가 
+선생님에게 질문하여 문제점이 paging.getStartPage()은 1부터 시작을 해서 , 게시글이 11개여도 초기 시작인 0번째 인덱스를 생략하고 뽑아내는 논리적 오류가 있다는 것을 알게 되었고, 
+<br/>
+paging.getStartPage() 이 아니라 paging.getStart()로 작성해야했다는 것을 알고 수정하였다. 
+<br/>
 
 
 
+getStartPage()를 psmt에 세팅하고 있어서 
+글의 개수가 10개를 초과했을 때 다음 페이지를 클릭해도 , 다음 페이지에 이전 페이지에 존재한 내용이 바뀌지 않고 그대로 나오는 이슈가 있었음 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+➡️ 수정한 코드 
+```
+	 System.out.println("paging.getStartPage()::::"+paging.getStart());
+	 System.out.println("paging.getPerPage()::::"+paging.getPerPage());
+	
+	psmt = conn.prepareStatement(sql);
+	psmt.setInt(1, paging.getStart());
+	psmt.setInt(2, paging.getPerPage());
+```
 
 
 
