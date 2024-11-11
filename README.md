@@ -21,10 +21,7 @@ public void blackList (HttpServletRequest request
 			nowPage = Integer.parseInt(request.getParameter("nowPage"));
 			System.out.println("nowPage========================== " + nowPage);
 		}	
-		
-
 		try{
-			
 			conn = DBConn.conn();
 			// 페이징
 			String sqlTotal =" SELECT COUNT(DISTINCT b.uno) as total "
@@ -120,12 +117,6 @@ public void blackList (HttpServletRequest request
 paging.getStartPage() 이 아니라 paging.getStart()로 작성해야했다는 것을 알고 수정하였다. 
 <br/>
 
-
-
-getStartPage()를 psmt에 세팅하고 있어서 
-글의 개수가 10개를 초과했을 때 다음 페이지를 클릭해도 , 다음 페이지에 이전 페이지에 존재한 내용이 바뀌지 않고 그대로 나오는 이슈가 있었음 
-
-
 ➡️ 수정한 코드 
 ```
 	 System.out.println("paging.getStartPage()::::"+paging.getStart());
@@ -135,18 +126,28 @@ getStartPage()를 psmt에 세팅하고 있어서
 	psmt.setInt(1, paging.getStart());
 	psmt.setInt(2, paging.getPerPage());
 ```
+위의 수정한 코드처럼 작성을 하니 시작 게시글 번호를 의미하는 getStart()를 통해 값을 가져올 수 있었다 .
 
+<br/>
+<br/>
+✴︎ 중요하다고 생각한 부분 (내가 처음에 생각했을 때 놓친 부분 )
+```
+String sqlTotal =" SELECT COUNT(DISTINCT b.uno) as total "
+					+"   FROM complaint_board c  "
+					+"         LEFT JOIN board b ON c.bno = b.bno  "
+					+"         GROUP BY b.uno  "
+					+"         HAVING COUNT(b.uno) > 0; ";
+```
+처음 페이징에 관련해서 , 
+여러 사용자가 특정 사용자를 신고했을 때 , 신고당한 사용자가 블랙리스트에 한 페이지를 채울 수 있다고 생각하고 sql문을 작성했는데 
+작성한 sql문이 신고 횟수는 올리지만, 신고당한 사용자가 중복되어 나타나는 현상을 막을 수 없었고, sql문을 찾아보다가 
+DISTINCT를 알게 되었고, 중복 제거의 특징을 가진 DISTINCT라면 여러번 신고당한 사용자가 중복되지 않고 한 번만 나타날 수 있다는 생각을 갖고 작성한 쿼리이다. 
 
-
-
-
-
-
-
-
-
-
-
+// 수정 해야할 부분
+해당 쿼리에서 complaint_board기준 외래키인 bno를 조건으로 board를 left join하여 ,board에 존재하는 uno로 그룹핑 하였다. 
+또한 그룹핑의 조건으로 b.uno>0일 때만 조회할 수 있게 작성한 결과 
+특정 사용자가 신고 되었을 때 ,  complaint_board와 board의 uno를 가져올 수 있고 , 
+// 수정 해야할 부분
 
 
 
