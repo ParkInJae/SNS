@@ -1,4 +1,147 @@
 0️⃣  페이징 관련에서 겪었던  어려운 점  <br/>
+ 기존에 작성한 페이징util 객체를 불러와서 사용을 하는데 , 각각의 쿼리와 함께 사용해야하는 부분에서 혼동이 왔음 <br/><br/>
+ 
+➡️ 작성한 코드 
+```
+public void blackList (HttpServletRequest request
+			, HttpServletResponse response) throws ServletException, IOException {
+		request.setCharacterEncoding("UTF-8");
+		Connection conn = null;
+		PreparedStatement psmt = null;
+		ResultSet rs = null;
+
+		// controller 영역 
+		PreparedStatement psmtTotal = null;
+		ResultSet rsTotal = null;
+
+		int nowPage = 1;
+		
+		if(request.getParameter("nowPage") != null)
+		{
+			nowPage = Integer.parseInt(request.getParameter("nowPage"));
+			System.out.println("nowPage========================== " + nowPage);
+		}	
+		
+
+		try{
+			
+			conn = DBConn.conn();
+			// 페이징
+			String sqlTotal =" SELECT COUNT(DISTINCT b.uno) as total "
+					+"   FROM complaint_board c  "
+					+"         LEFT JOIN board b ON c.bno = b.bno  "
+					+"         GROUP BY b.uno  "
+					+"         HAVING COUNT(b.uno) > 0; ";
+		
+			psmtTotal=conn.prepareStatement(sqlTotal);
+			rsTotal = psmtTotal.executeQuery();
+			
+			//전체 게시글 갯수 담을 변수
+			int total = 0; 
+			
+			if(rsTotal.next())
+			{
+				total = rsTotal.getInt("total");
+			}
+			PagingUtil paging = new PagingUtil(nowPage, total, 10);
+			
+			//데이터 출력에 필요한 게시글 데이터 조회 쿼리 영역
+			
+			/*
+			 	서브쿼리 쓸 때 조심해야함 >> complaint_board c로 작성하면 sql문법 오류가 발생함
+			 	(메인쿼리의 별칭은 서브쿼리의 별칭으로 사용할 수 없음 )
+			 	서브쿼리 순서 >> 메인 쿼리가 먼저 실행 되고 뒤에 서브 쿼리의 순으로 진행이 됨
+			 	메인쿼리 > 여러 테이블을 조인하고 별칭을 정의 
+			 	서브 쿼리 > 현제 메인쿼리의 각 행에 대한 정보를 참조,
+			 	b.bno는 각 행에 대한 내용 >>> 따라서 서브쿼리에서 사용할 수 있음
+			 	그러나 별칭 c 는 각 행이 아닌 테이블 전체에 대한 내용이기 때문에 서브쿼리에 사용할 수 없음 
+			 */
+			
+			String sql = "";
+			sql = " select "
+			+ "    b.uno, "
+			+ "    (select unick from user where uno = b.uno) as nick,  "
+			+ "    (select uemail from user where uno = b.uno) as email, "
+			+ "    (select urdate from user where uno = b.uno) as rdate, "
+			+ "    count(b.uno) as report_count,  "
+			+ "    (select ustate from user where uno = b.uno) as state "
+			+ " from complaint_board c left join board b on c.bno = b.bno group by b.uno having count(b.uno) > 0 ";
+			 sql += " LIMIT ? , ?"; //limit 시작게시글번호(pagingUtil->start필드), 출력
+			 /* 갯수(pagingUtil->perPage필드)*/	
+			 System.out.println("sql" + sql);
+			 
+			 
+			 System.out.println("paging.getStartPage()::::"+paging.getStart());
+			 System.out.println("paging.getPerPage()::::"+paging.getPerPage());
+			
+			psmt = conn.prepareStatement(sql);
+			psmt.setInt(1, paging.getStart());
+			psmt.setInt(2, paging.getPerPage());
+			rs = psmt.executeQuery();
+			
+			ArrayList <UserVO> list = new ArrayList<>();
+			
+			while(rs.next()){
+				UserVO vo = new UserVO();
+				vo.setUnick(rs.getString("nick"));
+				vo.setUemail(rs.getString("email"));
+				vo.setUrdate(rs.getString("rdate"));
+				vo.setDeclaration(rs.getInt("report_count"));
+				vo.setUstate(rs.getString("state"));
+				vo.setUno(rs.getString("uno"));
+				list.add(vo);
+				}
+			request.setAttribute("list", list);
+			request.setAttribute("paging", paging);
+			// board 작성한 
+			request.getRequestDispatcher("/WEB-INF/admin/blackList.jsp").forward(request, response);
+		}catch(Exception e){
+			e.printStackTrace();
+		}finally {
+			try {
+				DBConn.close(rs,psmt, conn);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
+```
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 1️⃣ userController와 mypage에서 겪었던 어려운 점<br/>
@@ -39,7 +182,7 @@ else if (comments[comments.length - 1].equals("mypage_bookmark.do")) {
 위의 코드를 삭제 후 header와 프로필 이미지를 클릭 했을 때 mypage.do에서 모든 처리를 하고 ,if문을 사용해서 
 해당 조건에 따라서 정리를 했음 
 
-정리 후 코드      
+➡️ 정리 후 코드      
 ```
 // 클릭했을 때 mypage로 이동 
 onclick="location.href='<%= request.getContextPath() %>/user/mypage.do?uno=<%= vo.getUno() %>&type=written'"
