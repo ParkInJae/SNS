@@ -4,6 +4,7 @@
 2. 이 때 , mypage.do , mypage_write.do, mypage_bookmark.do 3가지의 경로가 필요하다고 생각함 따라서 메소드도 3가지가 필요하다고 생각했음
 userController에서 아래와 같이 메소드를 추가했음 
 */
+
 public class UserController {
 	public UserController(HttpServletRequest request, HttpServletResponse response, String[] comments)
 			throws ServletException, IOException {
