@@ -120,7 +120,7 @@ paging.getStartPage() 이 아니라 paging.getStart()로 작성해야했다는 �
 
 ➡️ 수정한 코드 
 ```
-	 System.out.println("paging.getStartPage()::::"+paging.getStart());
+	 System.out.println("paging.getStart()::::"+paging.getStart());
 	 System.out.println("paging.getPerPage()::::"+paging.getPerPage());
 	
 	psmt = conn.prepareStatement(sql);
