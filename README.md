@@ -130,23 +130,27 @@ paging.getStartPage() 이 아니라 paging.getStart()로 작성해야했다는 �
 위의 수정한 코드처럼 작성을 하니 시작 게시글 번호를 의미하는 getStart()를 통해 값을 가져올 수 있었다 .
 
 <br/>
-<br/>
+
 ✴︎ 중요하다고 생각한 부분 (내가 처음에 생각했을 때 놓친 부분 )
+<br/>
+
 ```
-String sqlTotal =" SELECT COUNT(DISTINCT b.uno) as total "
-					+"   FROM complaint_board c  "
-					+"         LEFT JOIN board b ON c.bno = b.bno  "
-					+"         GROUP BY b.uno  "
-					+"         HAVING COUNT(b.uno) > 0 ";
+	String sqlTotal =" SELECT COUNT(DISTINCT b.uno) as total "
+			+"   FROM complaint_board c  "
+			+"         LEFT JOIN board b ON c.bno = b.bno  "
+			+"         GROUP BY b.uno  "
+			+"         HAVING COUNT(b.uno) > 0 ";
 ```
-처음 페이징에 관련해서 , 
-여러 사용자가 특정 사용자를 신고했을 때 , 신고당한 사용자가 블랙리스트에 한 페이지를 채울 수 있다고 생각하고 sql문을 작성했는데 
-작성한 sql문이 신고 횟수는 올리지만, 신고당한 사용자가 중복되어 나타나는 현상을 막을 수 없었고, sql문을 찾아보다가 
+
+처음 페이징에 관련해서, 여러 사용자가 특정 사용자를 신고했을 때 , 신고당한 사용자가 블랙리스트에 한 페이지를 채울 수 있다고 생각하고 sql문을 작성했다 <br/> 
+작성한 sql문이 신고 횟수는 올리지만, 신고당한 사용자가 중복되어 나타나는 현상을 막을 수 없었고, sql문을 찾아보다 
 DISTINCT를 알게 되었고, 중복 제거의 특징을 가진 DISTINCT라면 여러번 신고당한 사용자가 중복되지 않고 한 번만 나타날 수 있다는 생각을 갖고 작성한 쿼리이다. 
+<br/>
 
-✴︎ 쿼리의 목적 
+✴︎ 쿼리의 목적 <br/>
+
 ➡️ 신고당한 사용자가 중복해서 나타나는 현상을 방지
-
+<br/>
 1)  from절 
 ```
  FROM complaint_board c LEFT JOIN board b ON c.bno = b.bno
