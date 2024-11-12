@@ -106,6 +106,7 @@ public void blackList (HttpServletRequest request
 	
 ```
 📗 개선한 부분
+
 처음에는 getStartPage()를 psmt에 세팅하고 있어 오류가 발생하는 줄 모르고 , getStartPage()가 null이라서 받아오지 못한다고 생각하여 
 ```
 	 System.out.println("paging.getStartPage()::::"+paging.getStart());
@@ -136,19 +137,46 @@ String sqlTotal =" SELECT COUNT(DISTINCT b.uno) as total "
 					+"   FROM complaint_board c  "
 					+"         LEFT JOIN board b ON c.bno = b.bno  "
 					+"         GROUP BY b.uno  "
-					+"         HAVING COUNT(b.uno) > 0; ";
+					+"         HAVING COUNT(b.uno) > 0 ";
 ```
 처음 페이징에 관련해서 , 
 여러 사용자가 특정 사용자를 신고했을 때 , 신고당한 사용자가 블랙리스트에 한 페이지를 채울 수 있다고 생각하고 sql문을 작성했는데 
 작성한 sql문이 신고 횟수는 올리지만, 신고당한 사용자가 중복되어 나타나는 현상을 막을 수 없었고, sql문을 찾아보다가 
 DISTINCT를 알게 되었고, 중복 제거의 특징을 가진 DISTINCT라면 여러번 신고당한 사용자가 중복되지 않고 한 번만 나타날 수 있다는 생각을 갖고 작성한 쿼리이다. 
 
-// 수정 해야할 부분
-해당 쿼리에서 complaint_board기준 외래키인 bno를 조건으로 board를 left join하여 ,board에 존재하는 uno로 그룹핑 하였다. 
-또한 그룹핑의 조건으로 b.uno>0일 때만 조회할 수 있게 작성한 결과 
-특정 사용자가 신고 되었을 때 ,  complaint_board와 board의 uno를 가져올 수 있고 , 
-// 수정 해야할 부분
+✴︎ 쿼리의 목적 
+➡️ 신고당한 사용자가 중복해서 나타나는 현상을 방지
 
+1)  from절 
+```
+ FROM complaint_board c LEFT JOIN board b ON c.bno = b.bno
+```
+위의 쿼리는 complaint_board에 board를 left조인 하는데 조건으로 게시글 번호가 동일한 행을 left 조인 한다는 의미를 가지고 있다 .<br/>
+
+2)  group by 절
+```
+ GROUP BY b.uno
+```
+
+신고당한 사용자가 중복해서 나타나게 하지 않기 위해 GROUP BY b.uno를 통해 <br/>
+조인한 테이블을 기준으로 b.uno를 이용하여 uno(사용자 번호)를 가진 게시판을 하나로 그룹핑하였다.<br/>
+ 
+
+3) HAVING 절 
+```
+ HAVING COUNT(b.uno) > 0;
+```
+
+--  COUNT(b.uno): 그룹화된 각 사용자 그룹에서, 신고된 사용자 번호(uno)의 수를 셈 . <br/>
+
+-- HAVING COUNT(b.uno) > 0: 신고된 사용자 번호(b.uno)가 0보다 크면 결국 신고 되었다는 이야기, 신고된 게시글이 없는 사용자의 번호는 알 수 없음 <br/>
+
+
+1)  select절 
+```
+ SELECT COUNT(DISTINCT b.uno) as total
+```
+ 중복되지 않은 사용자의 수를 count()함수에 담은 결과를 total로 표시하고 , total의 값을 통해 신고 당한 사용자의 수를 알 수 있음
 
 
 
@@ -290,6 +318,7 @@ public void mypage(HttpServletRequest request, HttpServletResponse response) thr
 	}
 ```
 ✴︎ 중요하다고 생각한 부분 (내가 처음에 생각했을 때 놓친 부분 )
+
 1) mypage.jsp에서 및 usercontroller에서 loginUser가 null , type의 값이 null 일 때  유효성 검사를 할 생각을 하지 못했음 
 
 ```
